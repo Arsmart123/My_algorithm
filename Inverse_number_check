@@ -1,0 +1,145 @@
+import numpy as np
+import math
+
+# a = [1, 3, 5]  # 必须是左侧数组
+# b = [0.5, 2, 6, 10]  # 必须是右侧数组
+# 如果左侧数组没有用尽，而右侧数组被填入了主数组，那么这个右侧的数组与左侧尚未用完的数字，都构成反向序列。
+
+
+def split_inversion(e, f):
+    # 这个函数的作用就是将左右两半数组进行检查，这个时候数组内的顺序其实是不重要的。
+    n = len(e) + len(f)
+    i = 0
+    j = 0
+    invert_count = 0
+    for k in range(n):
+        if e[i] < f[j]:
+            if i < len(e) - 1:
+                i += 1
+            else:
+                e = np.ones(len(e)) * 100000000 # 当index超出了上限的时候，赋予极大值，可以使这个数组太大以至于不会有机会出现在前面
+                # 从而脱离排序
+        else:  # 右侧数组较小
+            if i < len(e) and max(e) < 100000000:
+                # 当i=2，满足上述<len(e)-1，会被+1，然后就变成了3，但是3此时还是没有用过的。而如果下次还是用了3（还是前半数组小），
+                # 那此时的i不会再更新，还是3
+                invert_count = invert_count + len(e) - i
+            if j < len(f) - 1:
+                j += 1
+            else:
+                f = np.ones(len(f)) * 10000000
+    return invert_count
+
+
+def sort(e, f):
+    # 这是mergesort中要用到的一个函数，就是单纯的进行排序
+    n = len(e) + len(f)
+    i1 = 0
+    j = 0
+    c = np.zeros(n)
+    for k in range(n):
+        if e[i1] < f[j]:
+            c[k] = e[i1]
+            if i1 < len(e) - 1:
+                i1 += 1
+            else:
+                e = np.ones(len(e)) * 10000000  # 当index超出了上限的时候，赋予极大值，可以使这个数组太大以至于不会有机会出现在前面
+                # 从而脱离排序
+        else:
+            c[k] = f[j]
+            if j < len(f) - 1:
+                j += 1
+            else:
+                f = np.ones(len(f)) * 10000000
+    return c
+
+
+def mergesort(a):
+    # 在上述sort的基础上进行最初始的分割和后续的合并等操作
+    b = len(a)
+    c = math.ceil(b/2)
+    d = b-c
+    e = a[:c]
+    f = a[c:]  # 经过实践证明，一个包头，一个包尾，可以包裹住整个数组
+    if len(e) == 1 or len(f) == 1:
+        if len(e) == 2:  # 这一步似乎是必须的，否则，sort函数只能对两个数组相互之间进行排序，却不能够对数组自己内部进行排序
+            # 由此也可以看出，使用这种sort函数，迭代的下限（base）就必须是1。
+            a11 = e
+            e = mergesort(a11)
+        if len(f) == 2:
+            a11 = f
+            f = mergesort(a11)
+        cc1 = sort(e, f)
+        return cc1
+    if len(e) > 1:
+        e = mergesort(e)
+        if len(f) > 1:  # 确保一直迭代到长度为1
+            f = mergesort(f)
+        g = sort(e, f)
+        return g
+
+
+def inversion(g):
+    # 总的迭代函数
+    b1 = len(g)
+    c = math.ceil(b1 / 2)
+    d = b1 - c
+    e = g[:c]
+    f = g[c:]  # 经过实践证明，一个包头，一个包尾，可以包裹住整个数组
+    if len(e) == 1 or len(f) == 1:
+        if len(e) == 2:  # 这一步似乎是必须的，否则，sort函数只能对两个数组相互之间进行排序，却不能够对数组自己内部进行排序
+            # 由此也可以看出，使用这种sort函数，迭代的下限（base）就必须是1。
+            a11 = e
+            invert_count1 = split_inversion([a11[0]], [a11[1]])
+            e = mergesort(e)  # 这是困扰我的最后一个坑点，不仅在下面e_1和f_1要排序，单独的2个的情况也要排序
+            # 这里原来写的直接是a11[0],从而没有办法运行，因为split_inversion里面的len方法
+            # 只能对数组使用，而不可以对单独的数字使用，所以我加上了一个[]
+        elif len(f) == 2:
+            a11 = f
+            invert_count1 = split_inversion([a11[0]], [a11[1]])  # invert_count1是对那个“两个”元素的计算
+            f = mergesort(f)
+        else:  # 在这里我学习到了Python中的多层if语句，最开始我写的是if---if---else,这是不行的，应该是：if---elif---elif---elif---else
+            invert_count1 = 0
+        invert_count2 = split_inversion(e, f)  # 是对分别彼此之间的计算
+        # print("invert_count1", invert_count1)
+        # print("invert_count2", invert_count2)
+        # print("left", e)
+        # print("right", f)
+        return invert_count2 + invert_count1
+    else:
+        e_1 = mergesort(e).tolist()
+        f_1 = mergesort(f).tolist()
+        invert_count3 = split_inversion(e_1, f_1)
+        invert_count_left = inversion(e)
+        invert_count_right = inversion(f)
+        # print("===================")
+        # print("f", f)
+        # print("invert_count_right", invert_count_right)
+        # print("--")
+        # print("e", e)
+        # print("invert_count_left", invert_count_left)
+        # print("--")
+        # print("sorted-left", e_1)
+        # print("sorted-right", f_1)
+        # print("invert_count3", invert_count3)
+        # print("===================")
+        return invert_count3 + invert_count_left + invert_count_right
+
+
+# 123.txt文件要和代码放在一个文件夹里，这一块代码是拿来打开文件夹并去除自然带上的''\n的。
+file = open("123.txt", "r")
+list1 = file.readlines()
+list1 = [x.strip() for x in list1 if x.strip() != '']  # strip() 方法用于移除字符串头尾指定的字符(默认为空格或换行符)或字符序列 这里就是\n
+for i2, v in enumerate(list1):
+    list1[i2] = int(v)  #  这个用于去除''
+# list1 = np.array(list1) # 这两步可以用于ndarray与list的互相转化
+# g2 = list1.tolist()
+
+
+
+g2 = list1
+ee = inversion(g2)
+print(ee)
+
+# 为了代码正确性，应该多检测，在较小的例子上有时候检测不出问题来。可以找别人生成的case，用暴力解法跑一遍正确方法，再拿来这里检测
+
