@@ -1,0 +1,48 @@
+# a = [2, 3, 1, 4, 0]
+# 逐渐养成好习惯，变量名标注清楚！
+
+
+def quick_sort(array, count):
+    right_large = []
+    left_small = []
+    if len(array) <= 1:
+        return array, count
+    else:
+        first_element = array[0]
+        # print("first_element", first_element)
+        for i2 in range(len(array)-1):
+            # print("array[i+1]", array[i+1])
+            if array[i2+1] > first_element:
+                right_large.append(array[i2+1])
+                count += 1
+                # print("count", count)
+                # print("right_large", right_large)
+            else:
+                left_small.append(array[i2+1])
+                count += 1
+                # print("count", count)
+                # print("left_small", left_small)
+        (right_large, count) = quick_sort(right_large, count)
+        # print("right_large1", right_large)
+        (left_small, count) = quick_sort(left_small, count)
+        # print("left_small1", left_small)
+        # array = left_small.append(right_large)  # 这里一开始导致了我的错误，因为left_small是一个数组，如果直接append到right_large
+        # 里面去的话，会变成[[1, 2, 3], 0, [4, 5, 6]]，所以下面要引入for循环来解决。另外，也要时刻关注每个变量的type，比如在对a数组append
+        # 之后，a数组就变成None类型了，这时候就要用a.append(b)，而不是a = a.append(b)
+        left_small.append(first_element)
+        for i1 in range(len(right_large)):
+            left_small.append(right_large[i1])
+        array = left_small
+        return array, count
+
+
+file = open("QuickSort.txt")
+list1 = file.readlines()
+list1 = [x.strip() for x in list1 if x.strip() != '']
+for i, v in enumerate(list1):
+    list1[i] = int(v)
+a = list1
+
+(c, d) = quick_sort(a, 0)
+print(d)
+
