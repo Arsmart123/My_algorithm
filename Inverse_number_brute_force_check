@@ -1,0 +1,20 @@
+import numpy as np
+
+
+def brute_force(a):
+    count = 0
+    for i in range(len(a)):
+        for k in range(len(a)-i):
+            if a[k+i] < a[i]:
+                count += 1
+    return count
+
+
+file = open("123.txt", "r")
+list1 = file.readlines()
+list1 = [x.strip() for x in list1 if x.strip() != '']
+for i, v in enumerate(list1):
+    list1[i] = int(v)
+g2 = list1
+
+print(brute_force(g2))
